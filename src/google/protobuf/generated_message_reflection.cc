@@ -405,8 +405,12 @@ size_t Reflection::SpaceUsedLong(const Message& message) const {
 #undef HANDLE_TYPE
 
         case FieldDescriptor::CPPTYPE_STRING:
-          switch (field->options().ctype()) {
+          switch (internal::cpp::EffectiveStringCType(field)) {
             default:  // TODO:  Support other string reps.
+            case FieldOptions::CORD:
+              total_size += GetRaw<RepeatedField<absl::Cord>>(message, field)
+                                .SpaceUsedExcludingSelfLong();
+              break;
             case FieldOptions::STRING:
               total_size +=
                   GetRaw<RepeatedPtrField<std::string> >(message, field)
@@ -627,8 +631,18 @@ template <bool unsafe_shallow_swap>
 void SwapFieldHelper::SwapRepeatedStringField(const Reflection* r, Message* lhs,
                                               Message* rhs,
                                               const FieldDescriptor* field) {
-  switch (field->options().ctype()) {
+  switch (internal::cpp::EffectiveStringCType(field)) {
     default:
+    case FieldOptions::CORD: {
+      auto* lhs_cord = r->MutableRaw<RepeatedField<absl::Cord>>(lhs, field);
+      auto* rhs_cord = r->MutableRaw<RepeatedField<absl::Cord>>(rhs, field);
+      if (unsafe_shallow_swap) {
+        lhs_cord->InternalSwap(rhs_cord);
+      } else {
+        lhs_cord->Swap(rhs_cord);
+      }
+      break;
+    }
     case FieldOptions::STRING: {
       auto* lhs_string = r->MutableRaw<RepeatedPtrFieldBase>(lhs, field);
       auto* rhs_string = r->MutableRaw<RepeatedPtrFieldBase>(rhs, field);
@@ -1340,6 +1354,10 @@ int Reflection::FieldSize(const Message& message,
 #undef HANDLE_TYPE
 
       case FieldDescriptor::CPPTYPE_STRING:
+        if (internal::cpp::EffectiveStringCType(field) == FieldOptions::CORD) {
+          return GetRaw<RepeatedField<absl::Cord> >(message, field).size();
+        }
+        ABSL_FALLTHROUGH_INTENDED;
       case FieldDescriptor::CPPTYPE_MESSAGE:
         if (IsMapFieldInApi(field)) {
           const internal::MapFieldBase& map =
@@ -1455,8 +1473,11 @@ void Reflection::ClearField(Message* message,
 #undef HANDLE_TYPE
 
       case FieldDescriptor::CPPTYPE_STRING: {
-        switch (field->options().ctype()) {
+        switch (internal::cpp::EffectiveStringCType(field)) {
           default:  // TODO:  Support other string reps.
+          case FieldOptions::CORD:
+            MutableRaw<RepeatedField<absl::Cord>>(message, field)->Clear();
+            break;
           case FieldOptions::STRING:
             MutableRaw<RepeatedPtrField<std::string> >(message, field)->Clear();
             break;
@@ -1505,8 +1526,11 @@ void Reflection::RemoveLast(Message* message,
 #undef HANDLE_TYPE
 
       case FieldDescriptor::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
+        switch (internal::cpp::EffectiveStringCType(field)) {
           default:  // TODO:  Support other string reps.
+          case FieldOptions::CORD:
+            MutableRaw<RepeatedField<absl::Cord>>(message, field)->RemoveLast();
+            break;
           case FieldOptions::STRING:
             MutableRaw<RepeatedPtrField<std::string> >(message, field)
                 ->RemoveLast();
@@ -1599,6 +1623,12 @@ void Reflection::SwapElements(Message* message, const FieldDescriptor* field,
 #undef HANDLE_TYPE
 
       case FieldDescriptor::CPPTYPE_STRING:
+        if (internal::cpp::EffectiveStringCType(field) == FieldOptions::CORD) {
+          MutableRaw<RepeatedField<absl::Cord> >(message, field)
+              ->SwapElements(index1, index2);
+          break;
+        }
+        ABSL_FALLTHROUGH_INTENDED;
       case FieldDescriptor::CPPTYPE_MESSAGE:
         if (IsMapFieldInApi(field)) {
           MutableRaw<MapFieldBase>(message, field)
@@ -2029,8 +2059,10 @@ std::string Reflection::GetRepeatedString(const Message& message,
   if (field->is_extension()) {
     return GetExtensionSet(message).GetRepeatedString(field->number(), index);
   } else {
-    switch (field->options().ctype()) {
+    switch (internal::cpp::EffectiveStringCType(field)) {
       default:  // TODO:  Support other string reps.
+      case FieldOptions::CORD:
+        return std::string(GetRepeatedField<absl::Cord>(message, field, index));
       case FieldOptions::STRING:
         return GetRepeatedPtrField<std::string>(message, field, index);
     }
@@ -2045,8 +2077,12 @@ const std::string& Reflection::GetRepeatedStringReference(
   if (field->is_extension()) {
     return GetExtensionSet(message).GetRepeatedString(field->number(), index);
   } else {
-    switch (field->options().ctype()) {
+    switch (internal::cpp::EffectiveStringCType(field)) {
       default:  // TODO:  Support other string reps.
+      case FieldOptions::CORD:
+        absl::CopyCordToString(
+            GetRepeatedField<absl::Cord>(message, field, index), scratch);
+        return *scratch;
       case FieldOptions::STRING:
         return GetRepeatedPtrField<std::string>(message, field, index);
     }
@@ -2065,6 +2101,10 @@ absl::string_view Reflection::GetRepeatedStringView(
   }
 
   switch (internal::cpp::EffectiveStringCType(field)) {
+    case FieldOptions::CORD: {
+      auto& cord = GetRepeatedField<absl::Cord>(message, field, index);
+      return scratch.CopyFromCord(cord);
+    }
     case FieldOptions::STRING:
     default:
       return GetRepeatedPtrField<std::string>(message, field, index);
@@ -2080,8 +2120,11 @@ void Reflection::SetRepeatedString(Message* message,
     MutableExtensionSet(message)->SetRepeatedString(field->number(), index,
                                                     std::move(value));
   } else {
-    switch (field->options().ctype()) {
+    switch (internal::cpp::EffectiveStringCType(field)) {
       default:  // TODO:  Support other string reps.
+      case FieldOptions::CORD:
+        SetRepeatedField<absl::Cord>(message, field, index, absl::Cord(value));
+        break;
       case FieldOptions::STRING:
         MutableRepeatedField<std::string>(message, field, index)
             ->assign(std::move(value));
@@ -2098,8 +2141,11 @@ void Reflection::AddString(Message* message, const FieldDescriptor* field,
     MutableExtensionSet(message)->AddString(field->number(), field->type(),
                                             std::move(value), field);
   } else {
-    switch (field->options().ctype()) {
+    switch (internal::cpp::EffectiveStringCType(field)) {
       default:  // TODO:  Support other string reps.
+      case FieldOptions::CORD:
+        AddField<absl::Cord>(message, field, absl::Cord(value));
+        break;
       case FieldOptions::STRING:
         AddField<std::string>(message, field)->assign(std::move(value));
         break;

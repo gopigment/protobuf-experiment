@@ -117,8 +117,10 @@ int FieldSpaceUsed(const FieldDescriptor* field) {
         }
 
       case FD::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
+        switch (internal::cpp::EffectiveStringCType(field)) {
           default:  // TODO:  Support other string reps.
+          case FieldOptions::CORD:
+            return sizeof(RepeatedField<absl::Cord>);
           case FieldOptions::STRING:
             return sizeof(RepeatedPtrField<std::string>);
         }
@@ -147,8 +149,10 @@ int FieldSpaceUsed(const FieldDescriptor* field) {
         return sizeof(Message*);
 
       case FD::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
+        switch (internal::cpp::EffectiveStringCType(field)) {
           default:  // TODO:  Support other string reps.
+          case FieldOptions::CORD:
+            return sizeof(absl::Cord);
           case FieldOptions::STRING:
             return sizeof(ArenaStringPtr);
         }
@@ -410,8 +414,30 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
         break;
 
       case FieldDescriptor::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
+        switch (internal::cpp::EffectiveStringCType(field)) {
           default:  // TODO:  Support other string reps.
+          case FieldOptions::CORD:
+            if (!field->is_repeated()) {
+              if (field->has_default_value()) {
+                new (field_ptr) absl::Cord(field->default_value_string());
+              } else {
+                new (field_ptr) absl::Cord;
+              }
+              if (arena != nullptr) {
+                // Cord does not support arena so here we need to notify arena
+                // to remove the data it allocated on the heap by calling its
+                // destructor.
+                arena->OwnDestructor(static_cast<absl::Cord*>(field_ptr));
+              }
+            } else {
+              new (field_ptr) RepeatedField<absl::Cord>(arena);
+              if (arena != nullptr) {
+                // Needs to destroy Cord elements.
+                arena->OwnDestructor(
+                    static_cast<RepeatedField<absl::Cord>*>(field_ptr));
+              }
+            }
+            break;
           case FieldOptions::STRING:
             if (!field->is_repeated()) {
               ArenaStringPtr* asp = new (field_ptr) ArenaStringPtr();
@@ -502,8 +528,11 @@ DynamicMessage::~DynamicMessage() {
       if (*(reinterpret_cast<const int32_t*>(field_ptr)) == field->number()) {
         field_ptr = MutableOneofFieldRaw(field);
         if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
-          switch (field->options().ctype()) {
+          switch (internal::cpp::EffectiveStringCType(field)) {
             default:
+            case FieldOptions::CORD:
+              delete *reinterpret_cast<absl::Cord**>(field_ptr);
+              break;
             case FieldOptions::STRING: {
               reinterpret_cast<ArenaStringPtr*>(field_ptr)->Destroy();
               break;
@@ -536,8 +565,12 @@ DynamicMessage::~DynamicMessage() {
 #undef HANDLE_TYPE
 
         case FieldDescriptor::CPPTYPE_STRING:
-          switch (field->options().ctype()) {
+          switch (internal::cpp::EffectiveStringCType(field)) {
             default:  // TODO:  Support other string reps.
+            case FieldOptions::CORD:
+              reinterpret_cast<RepeatedField<absl::Cord>*>(field_ptr)
+                  ->~RepeatedField<absl::Cord>();
+              break;
             case FieldOptions::STRING:
               reinterpret_cast<RepeatedPtrField<std::string>*>(field_ptr)
                   ->~RepeatedPtrField<std::string>();
@@ -556,8 +589,11 @@ DynamicMessage::~DynamicMessage() {
       }
 
     } else if (field->cpp_type() == FieldDescriptor::CPPTYPE_STRING) {
-      switch (field->options().ctype()) {
+      switch (internal::cpp::EffectiveStringCType(field)) {
         default:  // TODO:  Support other string reps.
+        case FieldOptions::CORD:
+          reinterpret_cast<absl::Cord*>(field_ptr)->~Cord();
+          break;
         case FieldOptions::STRING: {
           reinterpret_cast<ArenaStringPtr*>(field_ptr)->Destroy();
           break;

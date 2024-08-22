@@ -32,6 +32,7 @@ import static com.google.protobuf.UnittestLite.oneofNestedMessageExtensionLite;
 import static com.google.protobuf.UnittestLite.oneofStringExtensionLite;
 import static com.google.protobuf.UnittestLite.oneofUint32ExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalBoolExtensionLite;
+import static com.google.protobuf.UnittestLite.optionalBytesCordExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalBytesExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalCordExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalDoubleExtensionLite;
@@ -184,6 +185,7 @@ public final class TestUtilLite {
 
     builder.setOptionalStringPiece("124");
     builder.setOptionalCord("125");
+    builder.setOptionalBytesCord(toBytes("optional bytes cord"));
 
     // -----------------------------------------------------------------
 
@@ -345,6 +347,7 @@ public final class TestUtilLite {
 
     message.setExtension(optionalStringPieceExtensionLite, "124");
     message.setExtension(optionalCordExtensionLite, "125");
+    message.setExtension(optionalBytesCordExtensionLite, toBytes("optional bytes cord"));
 
     // -----------------------------------------------------------------
 

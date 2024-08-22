@@ -476,6 +476,10 @@ public class AbstractMessageTest {
             .addExtension(UnittestProto.repeatedInt32Extension, 999)
             .build();
 
+    // Hashcode consistency between dynamic and generated messages only works if field definition
+    // order matches field number order.
+    a = a.toBuilder().clearOptionalBytesCord().build();
+
     checkEqualsIsConsistent(a);
     checkEqualsIsConsistent(b);
     checkEqualsIsConsistent(c);

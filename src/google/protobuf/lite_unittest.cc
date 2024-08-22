@@ -960,6 +960,50 @@ TYPED_TEST(LiteTest, AllLite43) {
     EXPECT_TRUE(message2.MergeFromCodedStream(&input_stream));
     EXPECT_EQ(17, message2.oneof_int32());
   }
+
+  // Bytes [ctype = CORD]
+  {
+    protobuf_unittest::TestOneofParsingLite message2;
+    message2.set_oneof_bytes_cord("bytes cord");
+    io::CodedInputStream input_stream(
+        reinterpret_cast<const ::uint8_t*>(serialized.data()),
+        serialized.size());
+    EXPECT_TRUE(message2.MergeFromCodedStream(&input_stream));
+    EXPECT_EQ(17, message2.oneof_int32());
+  }
+
+  // String [ctype = CORD]
+  {
+    protobuf_unittest::TestOneofParsingLite message2;
+    *message2.mutable_oneof_string_cord() = "string cord";
+    io::CodedInputStream input_stream(
+        reinterpret_cast<const ::uint8_t*>(serialized.data()),
+        serialized.size());
+    EXPECT_TRUE(message2.MergeFromCodedStream(&input_stream));
+    EXPECT_EQ(17, message2.oneof_int32());
+  }
+
+  // String [ctype = STRING_PIECE]
+  {
+    protobuf_unittest::TestOneofParsingLite message2;
+    message2.set_oneof_string_string_piece("string StringPiece");
+    io::CodedInputStream input_stream(
+        reinterpret_cast<const ::uint8_t*>(serialized.data()),
+        serialized.size());
+    EXPECT_TRUE(message2.MergeFromCodedStream(&input_stream));
+    EXPECT_EQ(17, message2.oneof_int32());
+  }
+
+  // Bytes [ctype = STRING_PIECE]
+  {
+    protobuf_unittest::TestOneofParsingLite message2;
+    message2.set_oneof_bytes_string_piece("bytes StringPiece");
+    io::CodedInputStream input_stream(
+        reinterpret_cast<const ::uint8_t*>(serialized.data()),
+        serialized.size());
+    EXPECT_TRUE(message2.MergeFromCodedStream(&input_stream));
+    EXPECT_EQ(17, message2.oneof_int32());
+  }
 }
 
 // Verify that we can successfully parse fields of various types within oneof
@@ -1044,6 +1088,54 @@ TYPED_TEST(LiteTest, AllLite44) {
       EXPECT_TRUE(parsed.MergeFromCodedStream(&input_stream));
       EXPECT_EQ(protobuf_unittest::V2_SECOND, parsed.oneof_enum());
     }
+  }
+
+  // Bytes [ctype = CORD]
+  {
+    protobuf_unittest::TestOneofParsingLite original;
+    original.set_oneof_bytes_cord("bytes cord");
+    std::string serialized;
+    EXPECT_TRUE(original.SerializeToString(&serialized));
+    protobuf_unittest::TestOneofParsingLite parsed;
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+    EXPECT_EQ("bytes cord", std::string(parsed.oneof_bytes_cord()));
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+  }
+
+  // String [ctype = CORD]
+  {
+    protobuf_unittest::TestOneofParsingLite original;
+    *original.mutable_oneof_string_cord() = "string cord";
+    std::string serialized;
+    EXPECT_TRUE(original.SerializeToString(&serialized));
+    protobuf_unittest::TestOneofParsingLite parsed;
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+    EXPECT_EQ("string cord", std::string(parsed.oneof_string_cord()));
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+  }
+
+  // String [ctype = STRING_PIECE]
+  {
+    protobuf_unittest::TestOneofParsingLite original;
+    original.set_oneof_string_string_piece("string StringPiece");
+    std::string serialized;
+    EXPECT_TRUE(original.SerializeToString(&serialized));
+    protobuf_unittest::TestOneofParsingLite parsed;
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+    EXPECT_EQ("string StringPiece", parsed.oneof_string_string_piece());
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+  }
+
+  // Bytes [ctype = STRING_PIECE]
+  {
+    protobuf_unittest::TestOneofParsingLite original;
+    original.set_oneof_bytes_string_piece("bytes StringPiece");
+    std::string serialized;
+    EXPECT_TRUE(original.SerializeToString(&serialized));
+    protobuf_unittest::TestOneofParsingLite parsed;
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
+    EXPECT_EQ("bytes StringPiece", parsed.oneof_bytes_string_piece());
+    EXPECT_TRUE(parsed.MergeFromString(serialized));
   }
 
   std::cout << "PASS" << std::endl;

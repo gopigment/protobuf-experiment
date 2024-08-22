@@ -32,6 +32,7 @@ import static com.google.protobuf.UnittestLite.oneofNestedMessageExtensionLite;
 import static com.google.protobuf.UnittestLite.oneofStringExtensionLite;
 import static com.google.protobuf.UnittestLite.oneofUint32ExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalBoolExtensionLite;
+import static com.google.protobuf.UnittestLite.optionalBytesCordExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalBytesExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalCordExtensionLite;
 import static com.google.protobuf.UnittestLite.optionalDoubleExtensionLite;
@@ -122,6 +123,7 @@ import static protobuf_unittest.UnittestProto.oneofNestedMessageExtension;
 import static protobuf_unittest.UnittestProto.oneofStringExtension;
 import static protobuf_unittest.UnittestProto.oneofUint32Extension;
 import static protobuf_unittest.UnittestProto.optionalBoolExtension;
+import static protobuf_unittest.UnittestProto.optionalBytesCordExtension;
 import static protobuf_unittest.UnittestProto.optionalBytesExtension;
 import static protobuf_unittest.UnittestProto.optionalCordExtension;
 import static protobuf_unittest.UnittestProto.optionalDoubleExtension;
@@ -331,6 +333,7 @@ public final class TestUtil {
 
     message.setOptionalStringPiece("124");
     message.setOptionalCord("125");
+    message.setOptionalBytesCord(toBytes("optional bytes cord"));
 
     // -----------------------------------------------------------------
 
@@ -500,6 +503,7 @@ public final class TestUtil {
 
     Assert.assertTrue(message.hasOptionalStringPiece());
     Assert.assertTrue(message.hasOptionalCord());
+    Assert.assertTrue(message.hasOptionalBytesCord());
 
     Assert.assertEquals(101, message.getOptionalInt32());
     Assert.assertEquals(102, message.getOptionalInt64());
@@ -530,6 +534,7 @@ public final class TestUtil {
 
     Assert.assertEquals("124", message.getOptionalStringPiece());
     Assert.assertEquals("125", message.getOptionalCord());
+    Assert.assertEquals(toBytes("optional bytes cord"), message.getOptionalBytesCord());
 
     // -----------------------------------------------------------------
 
@@ -710,6 +715,7 @@ public final class TestUtil {
 
     Assert.assertFalse(message.hasOptionalStringPiece());
     Assert.assertFalse(message.hasOptionalCord());
+    Assert.assertFalse(message.hasOptionalBytesCord());
 
     // Optional fields without defaults are set to zero or something like it.
     Assert.assertEquals(0, message.getOptionalInt32());
@@ -750,6 +756,7 @@ public final class TestUtil {
 
     Assert.assertEquals("", message.getOptionalStringPiece());
     Assert.assertEquals("", message.getOptionalCord());
+    Assert.assertEquals(toBytes(""), message.getOptionalBytesCord());
 
     // Repeated fields are empty.
     Assert.assertEquals(0, message.getRepeatedInt32Count());
@@ -1231,6 +1238,7 @@ public final class TestUtil {
 
     message.setExtension(optionalStringPieceExtension, "124");
     message.setExtension(optionalCordExtension, "125");
+    message.setExtension(optionalBytesCordExtension, toBytes("optional bytes cord"));
 
     // -----------------------------------------------------------------
 
@@ -1420,6 +1428,7 @@ public final class TestUtil {
 
     Assert.assertTrue(message.hasExtension(optionalStringPieceExtension));
     Assert.assertTrue(message.hasExtension(optionalCordExtension));
+    Assert.assertTrue(message.hasExtension(optionalBytesCordExtension));
 
     assertEqualsExactType(101, message.getExtension(optionalInt32Extension));
     assertEqualsExactType(102L, message.getExtension(optionalInt64Extension));
@@ -1454,6 +1463,8 @@ public final class TestUtil {
 
     assertEqualsExactType("124", message.getExtension(optionalStringPieceExtension));
     assertEqualsExactType("125", message.getExtension(optionalCordExtension));
+    assertEqualsExactType(
+        toBytes("optional bytes cord"), message.getExtension(optionalBytesCordExtension));
 
     // -----------------------------------------------------------------
 
@@ -1639,6 +1650,7 @@ public final class TestUtil {
 
     Assert.assertFalse(message.hasExtension(optionalStringPieceExtension));
     Assert.assertFalse(message.hasExtension(optionalCordExtension));
+    Assert.assertFalse(message.hasExtension(optionalBytesCordExtension));
 
     // Optional fields without defaults are set to zero or something like it.
     assertEqualsExactType(0, message.getExtension(optionalInt32Extension));
@@ -1677,6 +1689,7 @@ public final class TestUtil {
 
     assertEqualsExactType("", message.getExtension(optionalStringPieceExtension));
     assertEqualsExactType("", message.getExtension(optionalCordExtension));
+    assertEqualsExactType(toBytes(""), message.getExtension(optionalBytesCordExtension));
 
     // Repeated fields are empty.
     Assert.assertEquals(0, message.getExtensionCount(repeatedInt32Extension));
@@ -2013,6 +2026,7 @@ public final class TestUtil {
 
     Assert.assertTrue(message.hasExtension(optionalStringPieceExtensionLite));
     Assert.assertTrue(message.hasExtension(optionalCordExtensionLite));
+    Assert.assertTrue(message.hasExtension(optionalBytesCordExtensionLite));
 
     assertEqualsExactType(101, message.getExtension(optionalInt32ExtensionLite));
     assertEqualsExactType(102L, message.getExtension(optionalInt64ExtensionLite));
@@ -2049,6 +2063,8 @@ public final class TestUtil {
 
     assertEqualsExactType("124", message.getExtension(optionalStringPieceExtensionLite));
     assertEqualsExactType("125", message.getExtension(optionalCordExtensionLite));
+    assertEqualsExactType(
+        toBytes("optional bytes cord"), message.getExtension(optionalBytesCordExtensionLite));
 
     // -----------------------------------------------------------------
 
@@ -2240,6 +2256,7 @@ public final class TestUtil {
 
     Assert.assertFalse(message.hasExtension(optionalStringPieceExtensionLite));
     Assert.assertFalse(message.hasExtension(optionalCordExtensionLite));
+    Assert.assertFalse(message.hasExtension(optionalBytesCordExtensionLite));
 
     // Optional fields without defaults are set to zero or something like it.
     assertEqualsExactType(0, message.getExtension(optionalInt32ExtensionLite));
@@ -2286,6 +2303,7 @@ public final class TestUtil {
 
     assertEqualsExactType("", message.getExtension(optionalStringPieceExtensionLite));
     assertEqualsExactType("", message.getExtension(optionalCordExtensionLite));
+    assertEqualsExactType(toBytes(""), message.getExtension(optionalBytesCordExtensionLite));
 
     // Repeated fields are empty.
     Assert.assertEquals(0, message.getExtensionCount(repeatedInt32ExtensionLite));
@@ -2857,6 +2875,7 @@ public final class TestUtil {
 
       message.setField(f("optional_string_piece"), "124");
       message.setField(f("optional_cord"), "125");
+      message.setField(f("optional_bytes_cord"), toBytes("optional bytes cord"));
 
       // -----------------------------------------------------------------
 
@@ -3072,6 +3091,7 @@ public final class TestUtil {
 
       Assert.assertTrue(message.hasField(f("optional_string_piece")));
       Assert.assertTrue(message.hasField(f("optional_cord")));
+      Assert.assertTrue(message.hasField(f("optional_bytes_cord")));
 
       Assert.assertEquals(101, message.getField(f("optional_int32")));
       Assert.assertEquals(102L, message.getField(f("optional_int64")));
@@ -3110,6 +3130,8 @@ public final class TestUtil {
 
       Assert.assertEquals("124", message.getField(f("optional_string_piece")));
       Assert.assertEquals("125", message.getField(f("optional_cord")));
+      Assert.assertEquals(
+          toBytes("optional bytes cord"), message.getField(f("optional_bytes_cord")));
 
       // -----------------------------------------------------------------
 
@@ -3324,6 +3346,7 @@ public final class TestUtil {
 
       Assert.assertFalse(message.hasField(f("optional_string_piece")));
       Assert.assertFalse(message.hasField(f("optional_cord")));
+      Assert.assertFalse(message.hasField(f("optional_bytes_cord")));
 
       // Optional fields without defaults are set to zero or something like it.
       Assert.assertEquals(0, message.getField(f("optional_int32")));
@@ -3378,6 +3401,7 @@ public final class TestUtil {
 
       Assert.assertEquals("", message.getField(f("optional_string_piece")));
       Assert.assertEquals("", message.getField(f("optional_cord")));
+      Assert.assertEquals(toBytes(""), message.getField(f("optional_bytes_cord")));
 
       // Repeated fields are empty.
       Assert.assertEquals(0, message.getRepeatedFieldCount(f("repeated_int32")));
