@@ -264,6 +264,11 @@ inline constexpr bool DebugHardenClearOneofMessageOnArena() {
 // available.
 inline constexpr bool PtrIsAtLeast8BAligned() { return alignof(void*) >= 8; }
 
+inline constexpr bool IsLazyParsingSupported() {
+  // We need 3 bits for pointer tagging in lazy parsing.
+  return PtrIsAtLeast8BAligned();
+}
+
 // Prefetch 5 64-byte cache line starting from 7 cache-lines ahead.
 // Constants are somewhat arbitrary and pretty aggressive, but were
 // chosen to give a better benchmark results. E.g. this is ~20%

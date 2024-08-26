@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "google/protobuf/testing/googletest.h"
+#include <gtest/gtest.h>
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
@@ -23,7 +23,7 @@ namespace protobuf {
 namespace TestUtil {
 
 inline std::string TestSourceDir() {
-  return google::protobuf::TestSourceDir();
+  return testing::SrcDir();
 }
 
 inline std::string GetTestDataPath(absl::string_view path) {
