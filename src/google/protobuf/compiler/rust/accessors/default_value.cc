@@ -87,6 +87,7 @@ std::string DefaultValue(Context& ctx, const FieldDescriptor& field) {
       ABSL_LOG(FATAL) << "Messages can't have defaults: " << field.type_name();
   }
   ABSL_LOG(FATAL) << "unreachable";
+  return "";
 }
 
 }  // namespace rust

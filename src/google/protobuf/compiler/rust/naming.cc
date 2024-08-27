@@ -211,6 +211,7 @@ std::string RsTypePath(Context& ctx, const FieldDescriptor& field) {
       return GetFullyQualifiedPath(ctx, *field.enum_type());
   }
   ABSL_LOG(FATAL) << "Unsupported field type: " << field.type_name();
+  return "";
 }
 
 std::string RustModuleForContainingType(Context& ctx,

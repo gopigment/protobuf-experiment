@@ -45,6 +45,9 @@ RustFieldType GetRustFieldType(FieldDescriptor::Type type) {
       return RustFieldType::ENUM;
   }
   ABSL_LOG(FATAL) << "Unknown field type: " << type;
+
+  // Return a placeholder value to avoid warnings on some platforms.
+  return RustFieldType::INT32;
 }
 
 }  // namespace rust
